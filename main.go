@@ -13,6 +13,11 @@ func init() {
 }
 
 func main() {
+
+	// TODO read defaultFileLocation from args
+
+	// TODO use panic/recover to send notification message
+
 	config := ReadConfig()
 	fmt.Printf("Checking the following dirs for changes: %v\n", config.Dirs)
 
@@ -22,7 +27,7 @@ func main() {
 	var waitGroup sync.WaitGroup
 	waitGroup.Add(len(config.Dirs))
 
-	results := make(chan Result)
+	resultsChannel := make(chan Result)
 	for _, dir := range config.Dirs {
 		// check if configured dir is in fact a directory
 		isADir := isADir(dir)
@@ -39,7 +44,7 @@ func main() {
 
 		// process dir in goroutine
 		go func(dir *os.File) {
-			Check(dir, getLastRunCount(store, dir), results)
+			Check(dir, getLastRunCount(store, dir), resultsChannel)
 			waitGroup.Done()
 		}(dir)
 	}
@@ -47,15 +52,31 @@ func main() {
 	// wait for goroutines to finish
 	go func() {
 		waitGroup.Wait()
-		close(results)
+		close(resultsChannel)
 	}()
 
 	// write results to file
-	for result := range results {
+	results := make(map[string]Result)
+	for result := range resultsChannel {
+		results[result.file.Name()] = result
 		store.Values[result.file.Name()] = result.currentRunCount
 		log.Println(result.message)
 	}
 	WriteStoreToFile(store)
+
+	messageTitle := renderTitle(results)
+	// TODO render messageTitle
+	Notify(config.Pushover.AppToken, config.Pushover.UserToken, messageTitle, "message")
+}
+
+func renderTitle(results map[string]Result) string {
+	status := OPERATIONAL
+	for _, v := range results {
+		if v.status > status {
+			status = v.status
+		}
+	}
+	return fmt.Sprintf("Directory Monitor Status: %v", status)
 }
 
 func isADir(dir string) (isADir bool) {

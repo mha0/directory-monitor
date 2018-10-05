@@ -9,8 +9,14 @@ import (
 
 const configFileName = "directory-monitor-conf.json"
 
+type pushover struct {
+	UserToken string
+	AppToken  string
+}
+
 type DirectoryMonitorConfig struct {
-	Dirs []string `json:"dirs"`
+	Pushover pushover
+	Dirs     []string `json:"dirs"`
 }
 
 func (c DirectoryMonitorConfig) String() string {

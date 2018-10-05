@@ -4,23 +4,21 @@ import (
 	"os"
 )
 
-const (
-	INITIALIZED = iota
-	WARNING
-	OPERATIONAL
-)
-
 type Status int
 
-func (status Status) String() string {
-	// ... operator counts how many
-	// items in the array (7)
-	names := [...]string{
-		"INITIALIZED",
-		"WARNING",
-		"OPERATIONAL"}
+const (
+	OPERATIONAL Status = iota
+	INITIALIZED
+	WARNING
+)
 
-	if status < INITIALIZED || status > OPERATIONAL {
+func (status Status) String() string {
+	names := [...]string{
+		"OPERATIONAL",
+		"INITIALIZED",
+		"WARNING"}
+
+	if status < OPERATIONAL || status > WARNING {
 		return "Unknown"
 	}
 
@@ -36,16 +34,9 @@ type Result struct {
 }
 
 func Check(dir *os.File, lastRunCount int, results chan<- Result) {
-	// count files
 	currentRunCount := CountFiles(dir)
-
-	// map to status
 	status := mapToStatus(lastRunCount, currentRunCount)
-
-	// render message
 	message := RenderMessage(dir, status, currentRunCount-lastRunCount)
-
-	// write output to channel (and writer later)
 	results <- Result{dir, status, message, lastRunCount, currentRunCount}
 }
 
