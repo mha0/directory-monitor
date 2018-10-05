@@ -32,6 +32,7 @@ func main() {
 
 		// open dir
 		dir, err := os.Open(dir)
+		defer dir.Close()
 		if err != nil {
 			log.Fatalln(fmt.Sprintf("Directory %v cannot be opened", dir))
 		}

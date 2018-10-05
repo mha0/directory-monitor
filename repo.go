@@ -42,6 +42,7 @@ func getStoreFileName() string {
 
 func ReadStoreFromFile() (store Store) {
 	storeFile := openStoreFile()
+	defer storeFile.Close()
 	decoder := json.NewDecoder(storeFile)
 	err := decoder.Decode(&store)
 	if err != nil {
