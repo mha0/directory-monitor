@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"os"
-	"os/user"
 )
 
 const storeFileName = "directory-monitor-store.json"
@@ -14,7 +13,11 @@ type Store struct {
 }
 
 func init() {
-	storeFileName := getStoreFileName()
+	createStoreIfNotExists()
+}
+
+func createStoreIfNotExists() {
+	storeFileName := GetDefaultFileLocation() + storeFileName
 	if _, err := os.Stat(storeFileName); os.IsNotExist(err) {
 		store := Store{Values: map[string]int{}}
 		WriteStoreToFile(store)
@@ -22,26 +25,8 @@ func init() {
 	}
 }
 
-func openStoreFile() *os.File {
-	storeFile, err := os.OpenFile(getStoreFileName(), os.O_CREATE|os.O_RDWR, 0744)
-	if err != nil {
-		log.Fatalln("Could not open store file:", err)
-	}
-	return storeFile
-}
-
-func getStoreFileName() string {
-	usr, err := user.Current()
-	if err != nil {
-		log.Fatalln(err)
-	}
-	configDir := usr.HomeDir + "/.go/"
-	storeFileName := configDir + storeFileName
-	return storeFileName
-}
-
 func ReadStoreFromFile() (store Store) {
-	storeFile := openStoreFile()
+	storeFile := OpenFile(storeFileName)
 	defer storeFile.Close()
 	decoder := json.NewDecoder(storeFile)
 	err := decoder.Decode(&store)
@@ -52,9 +37,10 @@ func ReadStoreFromFile() (store Store) {
 }
 
 func WriteStoreToFile(store Store) {
-	storeFile := openStoreFile()
+	storeFile := OpenFile(storeFileName)
 	defer storeFile.Close()
 	encoder := json.NewEncoder(storeFile)
+	encoder.SetIndent("", "    ")
 	err := encoder.Encode(store)
 	if err != nil {
 		log.Fatalln("Could not encode store file:", err)
