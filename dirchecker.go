@@ -31,6 +31,7 @@ type Result struct {
 	file    *os.File
 	status  Status
 	message string
+	// TODO add lastRunCount currentRunCount
 }
 
 func Check(dir *os.File, results chan<- Result) {

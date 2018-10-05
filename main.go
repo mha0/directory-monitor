@@ -16,6 +16,8 @@ func main() {
 	config := ReadConfig()
 	fmt.Printf("Checking the following dirs for changes: %v\n", config.Dirs)
 
+	// TODO read data store
+
 	// for each folder start goroutine
 	var waitGroup sync.WaitGroup
 	waitGroup.Add(len(config.Dirs))
@@ -46,6 +48,8 @@ func main() {
 		waitGroup.Wait()
 		close(results)
 	}()
+
+	// TODO write data store
 
 	// write output
 	for result := range results {
