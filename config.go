@@ -20,6 +20,7 @@ func (c DirectoryMonitorConfig) String() string {
 
 func ReadConfig() (config DirectoryMonitorConfig) {
 	configFile := openConfigFile()
+	defer configFile.Close()
 	config = decodeConfigFile(configFile)
 	if len(config.Dirs) == 0 {
 		log.Fatalln("No Dirs to monitor configured!")
@@ -33,12 +34,12 @@ func openConfigFile() *os.File {
 		log.Fatalln(err)
 	}
 	configDir := usr.HomeDir + "/.go/"
-	configFile := configDir + configFileName
-	config, err := os.Open(configFile)
+	configFileName := configDir + configFileName
+	configFile, err := os.Open(configFileName)
 	if err != nil {
-		log.Fatalln("Could not read config file at " + configFile)
+		log.Fatalln("Could not read config file at " + configFileName)
 	}
-	return config
+	return configFile
 }
 
 func decodeConfigFile(configFile *os.File) (config DirectoryMonitorConfig) {

@@ -6,14 +6,15 @@ import (
 	"strings"
 )
 
+// TODO ham add no of files added
 func RenderMessage(dir *os.File, status Status) (message string) {
 	switch status {
 	case INITIALIZED:
-		message = fmt.Sprintf("INITIALIZED: %v: Directory file counter initialized.", substringAfterLast(dir.Name(), "/"))
+		message = fmt.Sprintf("%v: %v: Directory file counter initialized.", status, substringAfterLast(dir.Name(), "/"))
 	case FAILED:
-		message = fmt.Sprintf("FAILED: %v: No files added since last run!", substringAfterLast(dir.Name(), "/"))
+		message = fmt.Sprintf("%v: %v: No files added since last run!", status, substringAfterLast(dir.Name(), "/"))
 	case OPERATIONAL:
-		message = fmt.Sprintf("OPERATIONAL: %v: Files were added since last run.", substringAfterLast(dir.Name(), "/"))
+		message = fmt.Sprintf("%v: %v: Files were added since last run.", status, substringAfterLast(dir.Name(), "/"))
 	}
 	return
 }

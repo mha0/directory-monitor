@@ -17,11 +17,10 @@ func main() {
 	fmt.Printf("Checking the following dirs for changes: %v\n", config.Dirs)
 
 	// for each folder start goroutine
-	results := make(chan Result)
-
 	var waitGroup sync.WaitGroup
 	waitGroup.Add(len(config.Dirs))
 
+	results := make(chan Result)
 	for _, dir := range config.Dirs {
 		// check if configured dir is in fact a directory
 		isADir := isADir(dir)
