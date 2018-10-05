@@ -5,8 +5,8 @@ import (
 )
 
 const (
-	INITIALIZED Status = iota
-	FAILED
+	INITIALIZED = iota
+	WARNING
 	OPERATIONAL
 )
 
@@ -17,7 +17,7 @@ func (status Status) String() string {
 	// items in the array (7)
 	names := [...]string{
 		"INITIALIZED",
-		"FAILED",
+		"WARNING",
 		"OPERATIONAL"}
 
 	if status < INITIALIZED || status > OPERATIONAL {
@@ -28,35 +28,36 @@ func (status Status) String() string {
 }
 
 type Result struct {
-	file    *os.File
-	status  Status
-	message string
-	// TODO add lastRunCount currentRunCount
+	file            *os.File
+	status          Status
+	message         string
+	lastRunCount    int
+	currentRunCount int
 }
 
-func Check(dir *os.File, results chan<- Result) {
+func Check(dir *os.File, lastRunCount int, results chan<- Result) {
 	// count files
-	initRun, lastRunCount, currentRunCount := CountFiles(dir)
+	currentRunCount := CountFiles(dir)
 
-	// define success, failure or init run
-	status := mapToStatus(initRun, currentRunCount, lastRunCount)
+	// map to status
+	status := mapToStatus(lastRunCount, currentRunCount)
 
-	// render message success, failure or init
-	message := RenderMessage(dir, status)
+	// render message
+	message := RenderMessage(dir, status, currentRunCount-lastRunCount)
 
 	// write output to channel (and writer later)
-	results <- Result{dir, status, message}
+	results <- Result{dir, status, message, lastRunCount, currentRunCount}
 }
 
-func mapToStatus(initRun bool, currentRunCount int, lastRunCount int) Status {
+func mapToStatus(lastRunCount int, currentRunCount int) Status {
 	var status Status
-	if initRun {
+	if lastRunCount < 0 {
 		status = INITIALIZED
 	} else {
 		if currentRunCount > lastRunCount {
 			status = OPERATIONAL
 		} else {
-			status = FAILED
+			status = WARNING
 		}
 	}
 	return status

@@ -17,7 +17,7 @@ func init() {
 	storeFileName := getStoreFileName()
 	if _, err := os.Stat(storeFileName); os.IsNotExist(err) {
 		store := Store{Values: map[string]int{}}
-		writeStoreToFile(store)
+		WriteStoreToFile(store)
 		log.Println("Initialized data store file")
 	}
 }
@@ -40,19 +40,7 @@ func getStoreFileName() string {
 	return storeFileName
 }
 
-func ReadKey(key string) int {
-	// load store from file
-	store := readStoreFromFile()
-
-	// find value
-	if value, exists := store.Values[key]; !exists {
-		return -1
-	} else {
-		return value
-	}
-}
-
-func readStoreFromFile() (store Store) {
+func ReadStoreFromFile() (store Store) {
 	storeFile := openStoreFile()
 	decoder := json.NewDecoder(storeFile)
 	err := decoder.Decode(&store)
@@ -62,13 +50,7 @@ func readStoreFromFile() (store Store) {
 	return
 }
 
-func WriteKey(key string, value int) {
-	store := readStoreFromFile()
-	store.Values[key] = value
-	writeStoreToFile(store)
-}
-
-func writeStoreToFile(store Store) {
+func WriteStoreToFile(store Store) {
 	storeFile := openStoreFile()
 	defer storeFile.Close()
 	encoder := json.NewEncoder(storeFile)

@@ -6,21 +6,19 @@ import (
 	"strings"
 )
 
-// TODO ham add no of files added
-func RenderMessage(dir *os.File, status Status) (message string) {
+func RenderMessage(dir *os.File, status Status, numberOfFilesAdded int) (message string) {
 	switch status {
 	case INITIALIZED:
 		message = fmt.Sprintf("%v: %v: Directory file counter initialized.", status, substringAfterLast(dir.Name(), "/"))
-	case FAILED:
+	case WARNING:
 		message = fmt.Sprintf("%v: %v: No files added since last run!", status, substringAfterLast(dir.Name(), "/"))
 	case OPERATIONAL:
-		message = fmt.Sprintf("%v: %v: Files were added since last run.", status, substringAfterLast(dir.Name(), "/"))
+		message = fmt.Sprintf("%v: %v: %v file(s) added since last run.", status, substringAfterLast(dir.Name(), "/"), numberOfFilesAdded)
 	}
 	return
 }
 
 func substringAfterLast(value string, a string) string {
-	// Get substring substringAfterLast a string.
 	pos := strings.LastIndex(value, a)
 	if pos == -1 {
 		return ""
