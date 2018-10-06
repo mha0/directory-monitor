@@ -12,7 +12,7 @@ func OpenFile(filename string) *os.File {
 	fileName := fileDir + filename
 	file, err := os.OpenFile(fileName, os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
-		log.Fatalln("Could not open file at " + fileName)
+		log.Panicln("Could not open file at " + fileName)
 	}
 	return file
 }
@@ -20,7 +20,7 @@ func OpenFile(filename string) *os.File {
 func GetDefaultFileLocation() string {
 	usr, err := user.Current()
 	if err != nil {
-		log.Fatalln(err)
+		log.Panicln(err)
 	}
 	return usr.HomeDir + "/.go/"
 }

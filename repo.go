@@ -31,7 +31,7 @@ func ReadStoreFromFile() (store Store) {
 	decoder := json.NewDecoder(storeFile)
 	err := decoder.Decode(&store)
 	if err != nil {
-		log.Fatalln("Could not decode store file:", err)
+		log.Panicln("Could not decode store file:", err)
 	}
 	return
 }
@@ -43,6 +43,6 @@ func WriteStoreToFile(store Store) {
 	encoder.SetIndent("", "    ")
 	err := encoder.Encode(store)
 	if err != nil {
-		log.Fatalln("Could not encode store file:", err)
+		log.Panicln("Could not encode store file:", err)
 	}
 }

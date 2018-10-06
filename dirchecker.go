@@ -34,6 +34,12 @@ type Result struct {
 }
 
 func Check(dir *os.File, lastRunCount int, results chan<- Result) {
+	defer func() {
+		if p := recover(); p != nil {
+			SendPanicNotification(p)
+		}
+	}()
+
 	currentRunCount := CountFiles(dir)
 	status := mapToStatus(lastRunCount, currentRunCount)
 	message := RenderMessage(dir, status, currentRunCount-lastRunCount)

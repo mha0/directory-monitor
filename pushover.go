@@ -45,6 +45,6 @@ func Notify(appToken string, userToken string, title string, message string) {
 	fmt.Println("response Body:", string(body))
 
 	if resp.StatusCode != 200 {
-		log.Fatalln("Failed to send notification using pushover")
+		log.Panicln("Failed to send notification using pushover")
 	}
 }

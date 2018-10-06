@@ -28,7 +28,7 @@ func ReadConfig() (config DirectoryMonitorConfig) {
 	defer configFile.Close()
 	config = decodeConfigFile(configFile)
 	if len(config.Dirs) == 0 {
-		log.Fatalln("No Dirs to monitor configured!")
+		log.Panicln("No Dirs to monitor configured!")
 	}
 	return
 }
@@ -38,7 +38,7 @@ func decodeConfigFile(configFile *os.File) (config DirectoryMonitorConfig) {
 	config = DirectoryMonitorConfig{}
 	err := decoder.Decode(&config)
 	if err != nil {
-		log.Fatalln("Could not decode config file:", err)
+		log.Panicln("Could not decode config file:", err)
 	}
 	return
 }
