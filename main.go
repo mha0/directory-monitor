@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"os"
@@ -12,13 +13,15 @@ func init() {
 	log.SetOutput(os.Stdout)
 }
 
+var config DirectoryMonitorConfig
+
 func main() {
 
 	// TODO read defaultFileLocation from args
 
 	// TODO use panic/recover to send notification message
 
-	config := ReadConfig()
+	config = ReadConfig()
 	fmt.Printf("Checking the following dirs for changes: %v\n", config.Dirs)
 
 	store := ReadStoreFromFile()
@@ -65,8 +68,8 @@ func main() {
 	WriteStoreToFile(store)
 
 	messageTitle := renderTitle(results)
-	// TODO render messageTitle
-	Notify(config.Pushover.AppToken, config.Pushover.UserToken, messageTitle, "message")
+	messageContent := renderMessageContent(results)
+	Notify(config.Pushover.AppToken, config.Pushover.UserToken, messageTitle, messageContent)
 }
 
 func renderTitle(results map[string]Result) string {
@@ -77,6 +80,15 @@ func renderTitle(results map[string]Result) string {
 		}
 	}
 	return fmt.Sprintf("Directory Monitor Status: %v", status)
+}
+
+func renderMessageContent(results map[string]Result) string {
+	var buffer bytes.Buffer
+	for _, dir := range config.Dirs {
+		resultMessage := results[dir].message
+		buffer.WriteString(" - " + resultMessage + "\n")
+	}
+	return buffer.String()
 }
 
 func isADir(dir string) (isADir bool) {
