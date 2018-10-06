@@ -18,17 +18,17 @@ type pushoverRequest struct {
 	Message   string `json:"message"`
 }
 
-func Notify(appToken string, userToken string, title string, message string) {
-	request := pushoverRequest{appToken, userToken, title, message}
+const endpoint = "https://api.pushover.net/1/messages.json"
 
-	url := "https://api.pushover.net/1/messages.json"
-	fmt.Println("URL: ", url)
+func Notify(appToken string, userToken string, title string, message string) {
+
+	request := pushoverRequest{appToken, userToken, title, message}
 
 	json.NewEncoder(os.Stdout).Encode(request)
 
 	reqBodyBytes := new(bytes.Buffer)
 	json.NewEncoder(reqBodyBytes).Encode(request)
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqBodyBytes.Bytes()))
+	req, err := http.NewRequest("POST", endpoint, bytes.NewBuffer(reqBodyBytes.Bytes()))
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
