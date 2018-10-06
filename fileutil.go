@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/ioutil"
 	"log"
 	"os"
 	"os/user"
@@ -22,4 +23,9 @@ func GetDefaultFileLocation() string {
 		log.Fatalln(err)
 	}
 	return usr.HomeDir + "/.go/"
+}
+
+func CountFiles(dir *os.File) (currentRunCount int) {
+	files, _ := ioutil.ReadDir(dir.Name())
+	return (len(files))
 }
