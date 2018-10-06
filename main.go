@@ -24,11 +24,8 @@ func main() {
 
 	// TODO read defaultFileLocation from args
 
-	// TODO use panic/recover to send notification message
-
 	config = ReadConfig()
-	// TODO replace with log statements
-	fmt.Printf("Checking the following dirs for changes: %v\n", config.Dirs)
+	log.Println(fmt.Sprintf("Checking the following dirs for changes: %v", config.Dirs))
 
 	store := ReadStoreFromFile()
 
@@ -73,9 +70,9 @@ func main() {
 	}
 	WriteStoreToFile(store)
 
-	//messageTitle := renderTitle(results)
-	//messageContent := renderMessageContent(results)
-	//Notify(config.Pushover.AppToken, config.Pushover.UserToken, messageTitle, messageContent)
+	messageTitle := renderTitle(results)
+	messageContent := renderMessageContent(results)
+	Notify(config.Pushover.AppToken, config.Pushover.UserToken, messageTitle, messageContent)
 }
 
 func renderTitle(results map[string]Result) string {

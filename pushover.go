@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"time"
 )
 
@@ -24,8 +23,6 @@ func Notify(appToken string, userToken string, title string, message string) {
 
 	request := pushoverRequest{appToken, userToken, title, message}
 
-	json.NewEncoder(os.Stdout).Encode(request)
-
 	reqBodyBytes := new(bytes.Buffer)
 	json.NewEncoder(reqBodyBytes).Encode(request)
 	req, err := http.NewRequest("POST", endpoint, bytes.NewBuffer(reqBodyBytes.Bytes()))
@@ -39,10 +36,8 @@ func Notify(appToken string, userToken string, title string, message string) {
 	}
 	defer resp.Body.Close()
 
-	fmt.Println("response Status:", resp.Status)
-	fmt.Println("response Headers:", resp.Header)
 	body, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println("response Body:", string(body))
+	log.Println(fmt.Sprintf("Response Status: %v; Response Headers: %v; Response Body: %v", resp.Status, resp.Header, string(body)))
 
 	if resp.StatusCode != 200 {
 		log.Panicln("Failed to send notification using pushover")
