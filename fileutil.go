@@ -4,18 +4,9 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"os/user"
 )
 
 var FilePath string
-
-func init() {
-	usr, err := user.Current()
-	if err != nil {
-		log.Panicln(err)
-	}
-	FilePath = usr.HomeDir + "/.go/"
-}
 
 func OpenFile(filename string) *os.File {
 	fileName := FilePath + filename

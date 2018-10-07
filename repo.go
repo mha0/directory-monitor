@@ -12,11 +12,7 @@ type Store struct {
 	Values map[string]int `json:"Values"`
 }
 
-func init() {
-	createStoreIfNotExists()
-}
-
-func createStoreIfNotExists() {
+func CreateStoreIfNotExists() {
 	storeFileName := FilePath + storeFileName
 	if _, err := os.Stat(storeFileName); os.IsNotExist(err) {
 		store := Store{Values: map[string]int{}}
