@@ -7,22 +7,23 @@ import (
 	"os/user"
 )
 
+var FilePath string
+
+func init() {
+	usr, err := user.Current()
+	if err != nil {
+		log.Panicln(err)
+	}
+	FilePath = usr.HomeDir + "/.go/"
+}
+
 func OpenFile(filename string) *os.File {
-	fileDir := GetDefaultFileLocation()
-	fileName := fileDir + filename
+	fileName := FilePath + filename
 	file, err := os.OpenFile(fileName, os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
 		log.Panicln("Could not open file at " + fileName)
 	}
 	return file
-}
-
-func GetDefaultFileLocation() string {
-	usr, err := user.Current()
-	if err != nil {
-		log.Panicln(err)
-	}
-	return usr.HomeDir + "/.go/"
 }
 
 func CountFiles(dir *os.File) (currentRunCount int) {

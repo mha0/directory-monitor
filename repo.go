@@ -17,7 +17,7 @@ func init() {
 }
 
 func createStoreIfNotExists() {
-	storeFileName := GetDefaultFileLocation() + storeFileName
+	storeFileName := FilePath + storeFileName
 	if _, err := os.Stat(storeFileName); os.IsNotExist(err) {
 		store := Store{Values: map[string]int{}}
 		WriteStoreToFile(store)

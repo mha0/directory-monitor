@@ -19,10 +19,17 @@ func main() {
 	defer func() {
 		if p := recover(); p != nil {
 			SendPanicNotification(p)
+			os.Exit(1)
 		}
 	}()
 
-	// TODO read defaultFileLocation from args
+	if len(os.Args) > 1 {
+		FilePath = os.Args[1]
+		if !isADir(FilePath) {
+			log.Panicln("Argument FilePath is not a directory!")
+		}
+	}
+	log.Println(fmt.Sprintf("FilePath set to %v", FilePath))
 
 	config = ReadConfig()
 	log.Println(fmt.Sprintf("Checking the following dirs for changes: %v", config.Dirs))

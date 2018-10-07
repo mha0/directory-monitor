@@ -37,6 +37,7 @@ func Check(dir *os.File, lastRunCount int, results chan<- Result) {
 	defer func() {
 		if p := recover(); p != nil {
 			SendPanicNotification(p)
+			os.Exit(1)
 		}
 	}()
 
