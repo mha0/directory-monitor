@@ -97,7 +97,7 @@ func renderTitle(results map[string]Result) string {
 			status = v.status
 		}
 	}
-	return fmt.Sprintf("Directory Monitor Status: %v", status)
+	return fmt.Sprintf("DirMon Status: %v", status)
 }
 
 func renderMessageContent(results map[string]Result) string {
@@ -129,7 +129,7 @@ func getLastRunCount(store Store, dir *os.File) (lastRunCount int) {
 }
 
 func SendPanicNotification(p interface{}) {
-	messageTitle := "Directory Monitor Panic!"
+	messageTitle := "DirMon Panic!"
 	messageContent := fmt.Sprintf("panic: %v", p)
 	Notify(config.Pushover.AppToken, config.Pushover.UserToken, messageTitle, messageContent)
 }
