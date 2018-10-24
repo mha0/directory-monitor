@@ -1,28 +1,26 @@
-package main
+package service
 
 import (
 	"encoding/json"
+	"github.com/mha0/directory-monitor/domain"
+	"github.com/mha0/directory-monitor/util"
 	"log"
 	"os"
 )
 
 const storeFileName = "directory-monitor-store.json"
 
-type Store struct {
-	Values map[string]int `json:"Values"`
-}
-
 func CreateStoreIfNotExists() {
-	storeFileName := FilePath + storeFileName
+	storeFileName := util.FilePath + storeFileName
 	if _, err := os.Stat(storeFileName); os.IsNotExist(err) {
-		store := Store{Values: map[string]int{}}
+		store := domain.Store{Values: map[string]int{}}
 		WriteStoreToFile(store)
 		log.Println("Initialized data store file")
 	}
 }
 
-func ReadStoreFromFile() (store Store) {
-	storeFile := OpenFile(storeFileName)
+func ReadStoreFromFile() (store domain.Store) {
+	storeFile := util.OpenFile(storeFileName)
 	defer storeFile.Close()
 	decoder := json.NewDecoder(storeFile)
 	err := decoder.Decode(&store)
@@ -32,8 +30,8 @@ func ReadStoreFromFile() (store Store) {
 	return
 }
 
-func WriteStoreToFile(store Store) {
-	storeFile := OpenFile(storeFileName)
+func WriteStoreToFile(store domain.Store) {
+	storeFile := util.OpenFile(storeFileName)
 	defer storeFile.Close()
 	encoder := json.NewEncoder(storeFile)
 	encoder.SetIndent("", "    ")

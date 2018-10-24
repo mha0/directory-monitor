@@ -1,18 +1,19 @@
-package main
+package render
 
 import (
 	"fmt"
+	"github.com/mha0/directory-monitor/domain"
 	"os"
 	"strings"
 )
 
-func RenderMessage(dir *os.File, status Status, numberOfFilesAdded int) (message string) {
+func RenderMessage(dir *os.File, status domain.Status, numberOfFilesAdded int) (message string) {
 	switch status {
-	case OPERATIONAL:
+	case domain.OPERATIONAL:
 		message = fmt.Sprintf("%v: %v: %v file(s) added since last run.", status, substringAfterLast(dir.Name(), "/"), numberOfFilesAdded)
-	case INITIALIZED:
+	case domain.INITIALIZED:
 		message = fmt.Sprintf("%v: %v: Directory file counter initialized.", status, substringAfterLast(dir.Name(), "/"))
-	case WARNING:
+	case domain.WARNING:
 		message = fmt.Sprintf("%v: %v: No files added since last run!", status, substringAfterLast(dir.Name(), "/"))
 	}
 	return

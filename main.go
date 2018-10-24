@@ -3,6 +3,10 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"github.com/mha0/directory-monitor/domain"
+	"github.com/mha0/directory-monitor/notify"
+	"github.com/mha0/directory-monitor/service"
+	"github.com/mha0/directory-monitor/util"
 	"io"
 	"log"
 	"os"
@@ -10,19 +14,19 @@ import (
 	"sync"
 )
 
-var config DirectoryMonitorConfig
+var cfg domain.DirectoryMonitorConfig
 
 func main() {
 	defer func() {
 		if p := recover(); p != nil {
-			SendPanicNotification(p)
+			notify.SendPanicNotification(p)
 			os.Exit(1)
 		}
 	}()
 
 	if len(os.Args) > 1 {
-		FilePath = os.Args[1]
-		if !isADir(FilePath) {
+		util.FilePath = os.Args[1]
+		if !util.IsADir(util.FilePath) {
 			log.Panicln("Argument FilePath is not a directory!")
 		}
 	} else {
@@ -30,11 +34,11 @@ func main() {
 		if err != nil {
 			log.Panicln(err)
 		}
-		FilePath = usr.HomeDir + "/.go/"
+		util.FilePath = usr.HomeDir + "/.go/"
 	}
 
 	// configure logger
-	f, err := os.OpenFile(FilePath + "directory-monitor-log.txt", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
+	f, err := os.OpenFile(util.FilePath + "directory-monitor-log.txt", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
 	}
@@ -42,21 +46,21 @@ func main() {
 	wrt := io.MultiWriter(os.Stdout, f)
 	log.SetOutput(wrt)
 
-	log.Println(fmt.Sprintf("FilePath set to %v", FilePath))
-	config = ReadConfig()
-	log.Println(fmt.Sprintf("Checking the following dirs for changes: %v", config.Dirs))
+	log.Println(fmt.Sprintf("FilePath set to %v", util.FilePath))
+	cfg = util.ReadConfig()
+	log.Println(fmt.Sprintf("Checking the following dirs for changes: %v", cfg.Dirs))
 
-	CreateStoreIfNotExists()
-	store := ReadStoreFromFile()
+	service.CreateStoreIfNotExists()
+	store := service.ReadStoreFromFile()
 
 	// for each folder start goroutine
 	var waitGroup sync.WaitGroup
-	waitGroup.Add(len(config.Dirs))
+	waitGroup.Add(len(cfg.Dirs))
 
-	resultsChannel := make(chan Result)
-	for _, dir := range config.Dirs {
+	resultsChannel := make(chan domain.Result)
+	for _, dir := range cfg.Dirs {
 		// check if configured dir is in fact a directory
-		isADir := isADir(dir)
+		isADir := util.IsADir(dir)
 		if !isADir {
 			log.Panicln(fmt.Sprintf("File %v is not a directory", dir))
 		}
@@ -70,7 +74,7 @@ func main() {
 
 		// process dir in goroutine
 		go func(dir *os.File) {
-			Check(dir, getLastRunCount(store, dir), resultsChannel)
+			service.Check(dir, getLastRunCount(store, dir), resultsChannel)
 			waitGroup.Done()
 		}(dir)
 	}
@@ -82,50 +86,39 @@ func main() {
 	}()
 
 	// write results to file
-	results := make(map[string]Result)
+	results := make(map[string]domain.Result)
 	for result := range resultsChannel {
-		results[result.file.Name()] = result
-		store.Values[result.file.Name()] = result.currentRunCount
-		log.Println(result.message)
+		results[result.Dir.Name()] = result
+		store.Values[result.Dir.Name()] = result.CurrentRunCount
+		log.Println(result.Message)
 	}
-	WriteStoreToFile(store)
+	service.WriteStoreToFile(store)
 
 	messageTitle := renderTitle(results)
 	messageContent := renderMessageContent(results)
-	Notify(config.Pushover.AppToken, config.Pushover.UserToken, messageTitle, messageContent)
+	notify.SendPushNotification(cfg.Pushover.AppToken, cfg.Pushover.UserToken, messageTitle, messageContent)
 }
 
-func renderTitle(results map[string]Result) string {
-	status := OPERATIONAL
+func renderTitle(results map[string]domain.Result) string {
+	status := domain.OPERATIONAL
 	for _, v := range results {
-		if v.status > status {
-			status = v.status
+		if v.Status > status {
+			status = v.Status
 		}
 	}
 	return fmt.Sprintf("DirMon Status: %v", status)
 }
 
-func renderMessageContent(results map[string]Result) string {
+func renderMessageContent(results map[string]domain.Result) string {
 	var buffer bytes.Buffer
-	for _, dir := range config.Dirs {
-		resultMessage := results[dir].message
+	for _, dir := range cfg.Dirs {
+		resultMessage := results[dir].Message
 		buffer.WriteString(" - " + resultMessage + "\n")
 	}
 	return buffer.String()
 }
 
-func isADir(dir string) (isADir bool) {
-	info, err := os.Stat(dir)
-	if err != nil {
-		log.Panicln(fmt.Sprintf("File stat on %v failed", dir))
-	}
-	if !info.Mode().IsDir() {
-		isADir = true
-	}
-	return true
-}
-
-func getLastRunCount(store Store, dir *os.File) (lastRunCount int) {
+func getLastRunCount(store domain.Store, dir *os.File) (lastRunCount int) {
 	if value, exists := store.Values[dir.Name()]; !exists {
 		return -1
 	} else {
@@ -133,8 +126,3 @@ func getLastRunCount(store Store, dir *os.File) (lastRunCount int) {
 	}
 }
 
-func SendPanicNotification(p interface{}) {
-	messageTitle := "DirMon Panic!"
-	messageContent := fmt.Sprintf("panic: %v", p)
-	Notify(config.Pushover.AppToken, config.Pushover.UserToken, messageTitle, messageContent)
-}

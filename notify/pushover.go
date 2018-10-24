@@ -1,4 +1,4 @@
-package main
+package notify
 
 import (
 	"bytes"
@@ -19,7 +19,7 @@ type pushoverRequest struct {
 
 const endpoint = "https://api.pushover.net/1/messages.json"
 
-func Notify(appToken string, userToken string, title string, message string) {
+func SendPushNotification(appToken string, userToken string, title string, message string) {
 
 	request := pushoverRequest{appToken, userToken, title, message}
 
