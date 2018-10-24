@@ -3,16 +3,12 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/user"
 	"sync"
 )
-
-func init() {
-	// Change the device for logging to stdout.
-	log.SetOutput(os.Stdout)
-}
 
 var config DirectoryMonitorConfig
 
@@ -36,8 +32,17 @@ func main() {
 		}
 		FilePath = usr.HomeDir + "/.go/"
 	}
-	log.Println(fmt.Sprintf("FilePath set to %v", FilePath))
 
+	// configure logger
+	f, err := os.OpenFile(FilePath + "directory-monitor-log.txt", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("error opening file: %v", err)
+	}
+	defer f.Close()
+	wrt := io.MultiWriter(os.Stdout, f)
+	log.SetOutput(wrt)
+
+	log.Println(fmt.Sprintf("FilePath set to %v", FilePath))
 	config = ReadConfig()
 	log.Println(fmt.Sprintf("Checking the following dirs for changes: %v", config.Dirs))
 
