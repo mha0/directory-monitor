@@ -1,4 +1,4 @@
-package render
+package service
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func RenderMessage(dir *os.File, status domain.Status, numberOfFilesAdded int) (message string) {
+func renderMessage(dir *os.File, status domain.Status, numberOfFilesAdded int) (message string) {
 	switch status {
 	case domain.OPERATIONAL:
 		message = fmt.Sprintf("%v: %v: %v file(s) added since last run.", status, substringAfterLast(dir.Name(), "/"), numberOfFilesAdded)

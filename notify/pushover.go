@@ -19,7 +19,7 @@ type pushoverRequest struct {
 
 const endpoint = "https://api.pushover.net/1/messages.json"
 
-func SendPushNotification(appToken string, userToken string, title string, message string) {
+func SendPushoverNotification(appToken string, userToken string, title string, message string) {
 
 	request := pushoverRequest{appToken, userToken, title, message}
 
@@ -37,7 +37,7 @@ func SendPushNotification(appToken string, userToken string, title string, messa
 	defer resp.Body.Close()
 
 	body, _ := ioutil.ReadAll(resp.Body)
-	log.Println(fmt.Sprintf("Response Status: %v; Response Headers: %v; Response Body: %v", resp.Status, resp.Header, string(body)))
+	log.Println(fmt.Sprintf("Pushover Response Status: %v; Response Body: %v", resp.Status, string(body)))
 
 	if resp.StatusCode != 200 {
 		log.Panicln("Failed to send notification using pushover")

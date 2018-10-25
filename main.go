@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/mha0/directory-monitor/domain"
 	"github.com/mha0/directory-monitor/notify"
@@ -12,11 +11,13 @@ import (
 	"os"
 	"os/user"
 	"sync"
+	"time"
 )
 
 var cfg domain.DirectoryMonitorConfig
 
 func main() {
+	// handles panic attacks
 	defer func() {
 		if p := recover(); p != nil {
 			notify.SendPanicNotification(p)
@@ -24,6 +25,7 @@ func main() {
 		}
 	}()
 
+	// process args
 	if len(os.Args) > 1 {
 		util.FilePath = os.Args[1]
 		if !util.IsADir(util.FilePath) {
@@ -46,12 +48,13 @@ func main() {
 	wrt := io.MultiWriter(os.Stdout, f)
 	log.SetOutput(wrt)
 
-	log.Println(fmt.Sprintf("FilePath set to %v", util.FilePath))
+	// read config
 	cfg = util.ReadConfig()
 	log.Println(fmt.Sprintf("Checking the following dirs for changes: %v", cfg.Dirs))
 
+	// initialize and load store
 	service.CreateStoreIfNotExists()
-	store := service.ReadStoreFromFile()
+	store := service.ReadStore()
 
 	// for each folder start goroutine
 	var waitGroup sync.WaitGroup
@@ -72,7 +75,7 @@ func main() {
 			log.Panicln(fmt.Sprintf("Directory %v cannot be opened", dir))
 		}
 
-		// process dir in goroutine
+		// process each dir in goroutine
 		go func(dir *os.File) {
 			service.Check(dir, getLastRunCount(store, dir), resultsChannel)
 			waitGroup.Done()
@@ -85,44 +88,49 @@ func main() {
 		close(resultsChannel)
 	}()
 
-	// write results to file
-	results := make(map[string]domain.Result)
+	// update store and write file
+	var results []domain.Result
 	for result := range resultsChannel {
-		results[result.Dir.Name()] = result
-		store.Values[result.Dir.Name()] = result.CurrentRunCount
+		results = append(results, result)
+		store.FileCounters[result.Dir.Name()] = result.CurrentRunCount
 		log.Println(result.Message)
 	}
-	service.WriteStoreToFile(store)
+	// send push notification if applicable
+	thisRunStatus := findHighestSeverityStatus(results)
 
-	messageTitle := renderTitle(results)
-	messageContent := renderMessageContent(results)
-	notify.SendPushNotification(cfg.Pushover.AppToken, cfg.Pushover.UserToken, messageTitle, messageContent)
-}
-
-func renderTitle(results map[string]domain.Result) string {
-	status := domain.OPERATIONAL
-	for _, v := range results {
-		if v.Status > status {
-			status = v.Status
-		}
+	if store.LastRunStatus != thisRunStatus {
+		store.LastTransitionTime = time.Now()
+		store.NotificationCounter = 0
 	}
-	return fmt.Sprintf("DirMon Status: %v", status)
-}
 
-func renderMessageContent(results map[string]domain.Result) string {
-	var buffer bytes.Buffer
-	for _, dir := range cfg.Dirs {
-		resultMessage := results[dir].Message
-		buffer.WriteString(" - " + resultMessage + "\n")
+	shouldNotify, messageTitle := service.ShouldNotify(store.LastRunStatus, thisRunStatus, store.LastTransitionTime, store.NotificationCounter, &cfg)
+	if shouldNotify {
+		log.Printf("Sending notification '%v'", messageTitle)
+		store.NotificationCounter++
+		notify.SendNotification(results, messageTitle)
+	} else {
+		log.Println("Not sending a notification - threshold not reached.")
 	}
-	return buffer.String()
+
+	store.LastRunStatus = thisRunStatus
+
+	service.WriteStore(store)
 }
 
 func getLastRunCount(store domain.Store, dir *os.File) (lastRunCount int) {
-	if value, exists := store.Values[dir.Name()]; !exists {
+	if value, exists := store.FileCounters[dir.Name()]; !exists {
 		return -1
 	} else {
 		return value
 	}
 }
 
+func findHighestSeverityStatus(results []domain.Result) domain.Status {
+	status := domain.OPERATIONAL
+	for _, v := range results {
+		if v.Status > status {
+			status = v.Status
+		}
+	}
+	return status
+}

@@ -3,21 +3,21 @@ package domain
 type Status int
 
 const (
-	OPERATIONAL Status = iota
-	INITIALIZED
+	OPERATIONAL Status = iota + 1
 	WARNING
+	INITIALIZED
 )
 
 func (status Status) String() string {
 	names := [...]string{
 		"OPERATIONAL",
-		"INITIALIZED",
-		"WARNING"}
+		"WARNING",
+		"INITIALIZED"}
 
-	if status < OPERATIONAL || status > WARNING {
+	if status < OPERATIONAL || status > INITIALIZED {
 		return "Unknown"
 	}
 
-	return names[status]
+	return names[status-1]
 }
 

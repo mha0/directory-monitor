@@ -1,7 +1,10 @@
 package domain
 
+import "time"
 
 type Store struct {
-	Values map[string]int `json:"Values"`
+	LastRunStatus       Status
+	LastTransitionTime  time.Time
+	NotificationCounter int
+	FileCounters        map[string]int
 }
-

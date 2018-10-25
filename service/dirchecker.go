@@ -3,7 +3,6 @@ package service
 import (
 	"github.com/mha0/directory-monitor/domain"
 	"github.com/mha0/directory-monitor/notify"
-	"github.com/mha0/directory-monitor/render"
 	"github.com/mha0/directory-monitor/util"
 	"os"
 )
@@ -18,7 +17,7 @@ func Check(dir *os.File, lastRunCount int, results chan<- domain.Result) {
 
 	currentRunCount := util.CountFiles(dir)
 	status := mapToStatus(lastRunCount, currentRunCount)
-	message := render.RenderMessage(dir, status, currentRunCount-lastRunCount)
+	message := renderMessage(dir, status, currentRunCount-lastRunCount)
 	results <- domain.Result{dir, status, message, lastRunCount, currentRunCount}
 }
 

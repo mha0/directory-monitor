@@ -1,17 +1,14 @@
 package domain
 
-import "fmt"
-
-type pushover struct {
+type Pushover struct {
 	UserToken string
 	AppToken  string
 }
 
 type DirectoryMonitorConfig struct {
-	Pushover pushover
-	Dirs     []string `json:"dirs"`
+	HeartbeatThresholdInHours int
+	DeadbeatThresholdInHours  int
+	Pushover                  Pushover
+	Dirs                      []string
 }
 
-func (c DirectoryMonitorConfig) String() string {
-	return fmt.Sprintf("Dirs: %v", c.Dirs)
-}

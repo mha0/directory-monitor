@@ -6,6 +6,7 @@ import (
 	"github.com/mha0/directory-monitor/util"
 	"log"
 	"os"
+	"time"
 )
 
 const storeFileName = "directory-monitor-store.json"
@@ -13,13 +14,13 @@ const storeFileName = "directory-monitor-store.json"
 func CreateStoreIfNotExists() {
 	storeFileName := util.FilePath + storeFileName
 	if _, err := os.Stat(storeFileName); os.IsNotExist(err) {
-		store := domain.Store{Values: map[string]int{}}
-		WriteStoreToFile(store)
+		store := domain.Store{domain.INITIALIZED, time.Now(), 0, map[string]int{}}
+		WriteStore(store)
 		log.Println("Initialized data store file")
 	}
 }
 
-func ReadStoreFromFile() (store domain.Store) {
+func ReadStore() (store domain.Store) {
 	storeFile := util.OpenFile(storeFileName)
 	defer storeFile.Close()
 	decoder := json.NewDecoder(storeFile)
@@ -30,7 +31,7 @@ func ReadStoreFromFile() (store domain.Store) {
 	return
 }
 
-func WriteStoreToFile(store domain.Store) {
+func WriteStore(store domain.Store) {
 	storeFile := util.OpenFile(storeFileName)
 	defer storeFile.Close()
 	encoder := json.NewEncoder(storeFile)
