@@ -1,14 +1,14 @@
 package domain
 
 type Pushover struct {
-	UserToken string
-	AppToken  string
+	AppToken  string `json:"appToken"`
+	UserToken string `json:"userToken"`
 }
 
 type DirectoryMonitorConfig struct {
-	HeartbeatThresholdInHours int
-	DeadbeatThresholdInHours  int
-	Pushover                  Pushover
-	Dirs                      []string
+	HeartbeatThresholdInHours int `json:"heartbeatThresholdInHours"`
+	DeadbeatThresholdInHours  int `json:"deadbeatThresholdInHours"`
+	Pushover                  Pushover `json:"pushover"`
+	Dirs                      []string `json:"dirs"`
 }
 
