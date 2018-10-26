@@ -14,7 +14,7 @@ const storeFileName = "directory-monitor-store.json"
 func CreateStoreIfNotExists() {
 	storeFileName := util.FilePath + storeFileName
 	if _, err := os.Stat(storeFileName); os.IsNotExist(err) {
-		store := domain.Store{domain.INITIALIZED, time.Now(), 0, map[string]int{}}
+		store := domain.Store{domain.INITIALIZED, time.Now(), map[string]int{}}
 		WriteStore(store)
 		log.Println("Initialized data store file")
 	}

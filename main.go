@@ -98,18 +98,11 @@ func main() {
 	// send push notification if applicable
 	thisRunStatus := findHighestSeverityStatus(results)
 
-	if store.LastRunStatus != thisRunStatus {
-		store.LastTransitionTime = time.Now()
-		store.NotificationCounter = 0
-	}
-
-	shouldNotify, messageTitle := service.ShouldNotify(store.LastRunStatus, thisRunStatus, store.LastTransitionTime, store.NotificationCounter, &cfg)
+	shouldNotify, messageTitle := service.ShouldNotify(store.LastRunStatus, thisRunStatus, store.LastNotificationTime, cfg)
 	if shouldNotify {
 		log.Printf("Sending notification '%v'", messageTitle)
-		store.NotificationCounter++
 		notify.SendNotification(results, messageTitle)
-	} else {
-		log.Println("Not sending a notification - threshold not reached.")
+		store.LastNotificationTime = time.Now()
 	}
 
 	store.LastRunStatus = thisRunStatus

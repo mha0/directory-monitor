@@ -7,9 +7,10 @@ import (
 	"time"
 )
 
-const TRANSITION_TEMPLATE = "Turned %v (from %v)"
+const transitionTemplate = "Turned %v (from %v)"
+const dateFormat = time.RFC822
 
-func ShouldNotify(lastRunStatus domain.Status, thisRunStatus domain.Status, lastTransitionTime time.Time, notificationCounter int, config *domain.DirectoryMonitorConfig) (shouldNotify bool, title string) {
+func ShouldNotify(lastRunStatus domain.Status, thisRunStatus domain.Status, lastNotificationTime time.Time, config domain.DirectoryMonitorConfig) (shouldNotify bool, title string) {
 	if thisRunStatus == domain.INITIALIZED {
 		return true, fmt.Sprintf("Just %v from scratch", thisRunStatus)
 	}
@@ -18,27 +19,27 @@ func ShouldNotify(lastRunStatus domain.Status, thisRunStatus domain.Status, last
 	case domain.INITIALIZED:
 		switch thisRunStatus {
 		case domain.OPERATIONAL:
-			return true, fmt.Sprintf(TRANSITION_TEMPLATE, thisRunStatus, lastRunStatus)
+			return true, fmt.Sprintf(transitionTemplate, thisRunStatus, lastRunStatus)
 		case domain.WARNING:
-			return true, fmt.Sprintf(TRANSITION_TEMPLATE, thisRunStatus, lastRunStatus)
+			return true, fmt.Sprintf(transitionTemplate, thisRunStatus, lastRunStatus)
 		}
 	case domain.OPERATIONAL:
 		switch thisRunStatus {
 		case domain.OPERATIONAL:
-			if aboveThreshold(lastTransitionTime, config.HeartbeatThresholdInHours, notificationCounter) {
+			if aboveThreshold(lastNotificationTime, config.HeartbeatThresholdInHours) {
 				return true, fmt.Sprintf("Heartbeat (still %v)", thisRunStatus)
 			} else {
 				return false, ""
 			}
 		case domain.WARNING:
-			return true, fmt.Sprintf(TRANSITION_TEMPLATE, thisRunStatus, lastRunStatus)
+			return true, fmt.Sprintf(transitionTemplate, thisRunStatus, lastRunStatus)
 		}
 	case domain.WARNING:
 		switch thisRunStatus {
 		case domain.OPERATIONAL:
-			return true, fmt.Sprintf(TRANSITION_TEMPLATE, thisRunStatus, lastRunStatus)
+			return true, fmt.Sprintf(transitionTemplate, thisRunStatus, lastRunStatus)
 		case domain.WARNING:
-			if aboveThreshold(lastTransitionTime, config.DeadbeatThresholdInHours, notificationCounter) {
+			if aboveThreshold(lastNotificationTime, config.DeadbeatThresholdInHours) {
 				return true, fmt.Sprintf("Deadbeat (still %v)", thisRunStatus)
 			} else {
 				return false, ""
@@ -49,8 +50,14 @@ func ShouldNotify(lastRunStatus domain.Status, thisRunStatus domain.Status, last
 	return
 }
 
-func aboveThreshold(lastTransitionTime time.Time, thresholdInHours int, notificationCounter int) (aboveThreshold bool) {
-	x := (notificationCounter + 1) * thresholdInHours
-	y := time.Now().Add(time.Duration(-x) * time.Hour)
-	return y.After(lastTransitionTime)
+func aboveThreshold(lastNotificationTime time.Time, thresholdInHours int) (aboveThreshold bool) {
+	threshold := lastNotificationTime.Add(time.Duration(thresholdInHours) * time.Hour)
+	now := time.Now()
+	aboveThreshold = now.After(threshold)
+	if(aboveThreshold) {
+		log.Println(fmt.Sprintf("Above notification threshold: %v (now) > %v (threshold)", now.Format(dateFormat), threshold.Format(dateFormat)))
+	} else {
+		log.Println(fmt.Sprintf("Below notification threshold: %v (now) < %v (threshold)", now.Format(dateFormat), threshold.Format(dateFormat)))
+	}
+	return
 }
