@@ -10,11 +10,11 @@ import (
 func renderMessage(dir *os.File, status domain.Status, numberOfFilesAdded int) (message string) {
 	switch status {
 	case domain.OPERATIONAL:
-		message = fmt.Sprintf("%v: %v: %v file(s) added since last run.", status, substringAfterLast(dir.Name(), "/"), numberOfFilesAdded)
+		message = fmt.Sprintf("%v %v: %v file(s) added since last run.", substringAfterLast(dir.Name(), "/"), status, numberOfFilesAdded)
 	case domain.INITIALIZED:
-		message = fmt.Sprintf("%v: %v: Directory file counter initialized.", status, substringAfterLast(dir.Name(), "/"))
+		message = fmt.Sprintf("%v %v: file counter initialized.", substringAfterLast(dir.Name(), "/"), status)
 	case domain.WARNING:
-		message = fmt.Sprintf("%v: %v: No files added since last run!", status, substringAfterLast(dir.Name(), "/"))
+		message = fmt.Sprintf("%v %v: No files added since last run!", substringAfterLast(dir.Name(), "/"), status)
 	}
 	return
 }

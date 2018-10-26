@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/mha0/directory-monitor/domain"
 	"github.com/mha0/directory-monitor/util"
+	"sort"
 )
 
 func SendNotification(results []domain.Result, messageTitle string) {
@@ -12,10 +13,17 @@ func SendNotification(results []domain.Result, messageTitle string) {
 	sendPushNotification(messageTitle, messageContent)
 }
 
+// Sorts the results alphabetically and lists them in a string
 func renderMessageContent(results []domain.Result) string {
-	var buffer bytes.Buffer
+	var contents []string
 	for _, result := range results {
-		buffer.WriteString(" - " + result.Message+ "\n")
+		contents = append(contents, " - "+result.Message+"\n")
+	}
+	sort.Strings(contents)
+
+	var buffer bytes.Buffer
+	for _, content := range contents {
+		buffer.WriteString(content)
 	}
 	return buffer.String()
 }
